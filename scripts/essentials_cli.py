@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
 import sys
 from pathlib import Path
@@ -120,12 +119,11 @@ PRESETS = {
 
 class CLIError(Exception):
     """Raised for expected user-facing errors."""
-    pass
 
 
 def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
     """Parse YAML frontmatter from Markdown text."""
-    match = re.match(r"^---\n(.*?)\n---\n(.*)$", text, re.S)
+    match = re.match(r"^---\n(.*?)\n---\n(.*)$", text, re.DOTALL)
     if not match:
         return {}, text
     raw_frontmatter, body = match.group(1), match.group(2)
@@ -269,8 +267,8 @@ def cmd_inspect(args: argparse.Namespace) -> int:
         print(f"\nIncluded Skills ({len(pdata['skills'])}):")
         for sk in pdata["skills"]:
             print(f"  • {sk}")
-        print(f"\nManual copy command:")
-        print(f"  mkdir -p ~/.agents/skills")
+        print("\nManual copy command:")
+        print("  mkdir -p ~/.agents/skills")
         for sk in pdata["skills"]:
             print(f"  cp -r skills/{sk} ~/.agents/skills/")
         return 0
@@ -297,11 +295,11 @@ def cmd_inspect(args: argparse.Namespace) -> int:
     print(f"  Category:        {matched['category']}")
     print(f"  Path:            {matched['path']}")
     print(f"  Description:     {matched['description']}")
-    print(f"\n  Manual Copy Command:")
-    print(f"    mkdir -p ~/.agents/skills")
+    print("\n  Manual Copy Command:")
+    print("    mkdir -p ~/.agents/skills")
     print(f"    cp -r {matched['path']} ~/.agents/skills/")
-    print(f"\n  For Claude Code:")
-    print(f"    mkdir -p ~/.claude/skills")
+    print("\n  For Claude Code:")
+    print("    mkdir -p ~/.claude/skills")
     print(f"    cp -r {matched['path']} ~/.claude/skills/")
     return 0
 
