@@ -131,7 +131,7 @@ def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
     for line in raw_frontmatter.splitlines():
         if ":" in line and not line.startswith((" ", "\t")):
             k, v = line.split(":", 1)
-            fields[k.strip()] = v.strip().strip('"\'')
+            fields[k.strip()] = v.strip().strip("\"'")
     return fields, body
 
 
@@ -171,6 +171,7 @@ def scan_skills() -> dict[str, dict[str, Any]]:
 
 # --------------------------------------------------------------------------- CLI Commands
 
+
 def cmd_list(args: argparse.Namespace) -> int:
     """List available skills by category and curated profiles."""
     skills = scan_skills()
@@ -179,11 +180,16 @@ def cmd_list(args: argparse.Namespace) -> int:
         grouped: dict[str, list[dict[str, Any]]] = {}
         for s in skills.values():
             grouped.setdefault(s["category"], []).append(s)
-        print(json.dumps({
-            "totalSkills": len(skills),
-            "categories": grouped,
-            "presets": PRESETS,
-        }, indent=2))
+        print(
+            json.dumps(
+                {
+                    "totalSkills": len(skills),
+                    "categories": grouped,
+                    "presets": PRESETS,
+                },
+                indent=2,
+            )
+        )
         return 0
 
     print("=" * 78)
@@ -206,7 +212,11 @@ def cmd_list(args: argparse.Namespace) -> int:
         cat_skills = grouped[cat]
         print(f"\n  [{cat.upper()}] ({len(cat_skills)} skills)")
         for s in cat_skills:
-            desc = (s["description"][:65] + "...") if len(s["description"]) > 65 else s["description"]
+            desc = (
+                (s["description"][:65] + "...")
+                if len(s["description"]) > 65
+                else s["description"]
+            )
             print(f"    - {s['id']:<28} {desc}")
 
     print(f"\nTotal: {len(skills)} portable skills in skills/")
@@ -241,7 +251,11 @@ def cmd_search(args: argparse.Namespace) -> int:
 
     print(f"Search results for '{query}' ({len(matches)} match(es)):\n")
     for m in matches:
-        desc = (m["description"][:60] + "...") if len(m["description"]) > 60 else m["description"]
+        desc = (
+            (m["description"][:60] + "...")
+            if len(m["description"]) > 60
+            else m["description"]
+        )
         print(f"  • {m['id']:<28} [{m['category']:<12}]")
         print(f"    Path:    {m['path']}")
         print(f"    Summary: {desc}")
@@ -283,7 +297,9 @@ def cmd_inspect(args: argparse.Namespace) -> int:
                 break
 
     if not matched:
-        raise CLIError(f"skill or profile '{target}' not found. Run './scripts/essentials list' to view available skills.")
+        raise CLIError(
+            f"skill or profile '{target}' not found. Run './scripts/essentials list' to view available skills."
+        )
 
     if getattr(args, "json", False):
         print(json.dumps(matched, indent=2))
@@ -333,11 +349,17 @@ def cmd_validate(args: argparse.Namespace) -> int:
                 content = skill_md.read_text(encoding="utf-8")
                 fields, _ = parse_frontmatter(content)
                 if not fields:
-                    errors.append(f"{cat_dir.name}/{sid}: missing or invalid YAML frontmatter in SKILL.md")
+                    errors.append(
+                        f"{cat_dir.name}/{sid}: missing or invalid YAML frontmatter in SKILL.md"
+                    )
                 elif fields.get("name") != sid:
-                    errors.append(f"{cat_dir.name}/{sid}: frontmatter name '{fields.get('name')}' != folder name '{sid}'")
+                    errors.append(
+                        f"{cat_dir.name}/{sid}: frontmatter name '{fields.get('name')}' != folder name '{sid}'"
+                    )
                 elif not fields.get("description"):
-                    errors.append(f"{cat_dir.name}/{sid}: frontmatter description is missing or empty")
+                    errors.append(
+                        f"{cat_dir.name}/{sid}: frontmatter description is missing or empty"
+                    )
             except Exception as exc:
                 errors.append(f"{cat_dir.name}/{sid}: error reading SKILL.md: {exc}")
 
@@ -349,13 +371,22 @@ def cmd_validate(args: argparse.Namespace) -> int:
     for err in errors:
         print(f"ERROR   {err}")
 
-    categories_count = len([d for d in SKILLS_DIR.iterdir() if d.is_dir() and not d.name.startswith((".", "_"))])
-    print(f"\nValidation Summary: {total_skills} skills across {categories_count} categories, "
-          f"{len(errors)} error(s), 0 warning(s).")
+    categories_count = len(
+        [
+            d
+            for d in SKILLS_DIR.iterdir()
+            if d.is_dir() and not d.name.startswith((".", "_"))
+        ]
+    )
+    print(
+        f"\nValidation Summary: {total_skills} skills across {categories_count} categories, "
+        f"{len(errors)} error(s), 0 warning(s)."
+    )
     return 1 if errors else 0
 
 
 # --------------------------------------------------------------------------- Parser & Main
+
 
 def build_cli_parser() -> argparse.ArgumentParser:
     """Build ArgumentParser for Essentials CLI."""
@@ -366,25 +397,43 @@ def build_cli_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", help="Sub-commands")
 
     # list
-    p_list = subparsers.add_parser("list", help="List available skills, categories, and curated profiles")
-    p_list.add_argument("--json", action="store_true", help="Output in machine-readable JSON format")
+    p_list = subparsers.add_parser(
+        "list", help="List available skills, categories, and curated profiles"
+    )
+    p_list.add_argument(
+        "--json", action="store_true", help="Output in machine-readable JSON format"
+    )
     p_list.set_defaults(func=cmd_list)
 
     # search
-    p_search = subparsers.add_parser("search", help="Search available skills by keyword or category")
+    p_search = subparsers.add_parser(
+        "search", help="Search available skills by keyword or category"
+    )
     p_search.add_argument("query", help="Search keyword")
-    p_search.add_argument("--category", "-c", help="Filter by category (e.g. engineering, threejs, python)")
-    p_search.add_argument("--json", action="store_true", help="Output in machine-readable JSON format")
+    p_search.add_argument(
+        "--category",
+        "-c",
+        help="Filter by category (e.g. engineering, threejs, python)",
+    )
+    p_search.add_argument(
+        "--json", action="store_true", help="Output in machine-readable JSON format"
+    )
     p_search.set_defaults(func=cmd_search)
 
     # inspect
-    p_inspect = subparsers.add_parser("inspect", help="Inspect metadata, description, and manual-copy instructions")
+    p_inspect = subparsers.add_parser(
+        "inspect", help="Inspect metadata, description, and manual-copy instructions"
+    )
     p_inspect.add_argument("skill_id", help="Skill ID or profile name")
-    p_inspect.add_argument("--json", action="store_true", help="Output in machine-readable JSON format")
+    p_inspect.add_argument(
+        "--json", action="store_true", help="Output in machine-readable JSON format"
+    )
     p_inspect.set_defaults(func=cmd_inspect)
 
     # validate
-    p_validate = subparsers.add_parser("validate", help="Validate skill directories, frontmatter, and uniqueness")
+    p_validate = subparsers.add_parser(
+        "validate", help="Validate skill directories, frontmatter, and uniqueness"
+    )
     p_validate.set_defaults(func=cmd_validate)
 
     return parser

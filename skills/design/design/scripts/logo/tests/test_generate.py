@@ -173,9 +173,7 @@ class MuapiGenerationTests(unittest.TestCase):
                 "id": "req-123",
                 "status": "created",
                 "output": {
-                    "urls": {
-                        "get": "https://api.muapi.ai/api/v1/results/req-123"
-                    }
+                    "urls": {"get": "https://api.muapi.ai/api/v1/results/req-123"}
                 },
             },
             {"id": "req-123", "status": "processing"},
@@ -277,9 +275,7 @@ class MuapiGenerationTests(unittest.TestCase):
             {
                 "request_id": "req-123",
                 "output": {
-                    "urls": {
-                        "get": "https://api.muapi.ai/api/v1/results/req-123"
-                    }
+                    "urls": {"get": "https://api.muapi.ai/api/v1/results/req-123"}
                 },
             },
             {"status": "failed", "error": "invalid prompt"},
@@ -394,7 +390,10 @@ class GeminiModelIdTests(unittest.TestCase):
     def test_model_ids_can_be_overridden_from_the_environment(self):
         with patch.dict(
             os.environ,
-            {"GEMINI_FLASH_IMAGE_MODEL": "flash-next", "GEMINI_PRO_IMAGE_MODEL": "pro-next"},
+            {
+                "GEMINI_FLASH_IMAGE_MODEL": "flash-next",
+                "GEMINI_PRO_IMAGE_MODEL": "pro-next",
+            },
         ):
             module = _load_module()
 
@@ -409,8 +408,9 @@ class ExitStatusTests(unittest.TestCase):
         self.dir = Path(temp_dir.name)
 
     def _run_main(self, *args):
-        with patch.object(sys, "argv", ["generate.py", *args]), patch(
-            "sys.stdout", new_callable=io.StringIO
+        with (
+            patch.object(sys, "argv", ["generate.py", *args]),
+            patch("sys.stdout", new_callable=io.StringIO),
         ):
             logo_generate.main()
 
@@ -419,10 +419,14 @@ class ExitStatusTests(unittest.TestCase):
         client.models.generate_content.side_effect = RuntimeError(
             "429 RESOURCE_EXHAUSTED"
         )
-        with patch.dict(sys.modules, _fake_genai(client)), patch.object(
-            logo_generate, "GEMINI_API_KEY", "test-key"
-        ), self.assertRaises(SystemExit) as raised:
-            self._run_main("--prompt", "test mark", "--output", str(self.dir / "logo.png"))
+        with (
+            patch.dict(sys.modules, _fake_genai(client)),
+            patch.object(logo_generate, "GEMINI_API_KEY", "test-key"),
+            self.assertRaises(SystemExit) as raised,
+        ):
+            self._run_main(
+                "--prompt", "test mark", "--output", str(self.dir / "logo.png")
+            )
 
         self.assertEqual(raised.exception.code, 1)
 

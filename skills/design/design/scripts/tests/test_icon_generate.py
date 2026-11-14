@@ -44,7 +44,9 @@ def _response(text, finish_reason=None):
 
 
 def test_viewbox_size_only_touches_root_tag(gen):
-    src = '<svg viewBox="0 0 24 24" stroke-width="2"><rect width="10" height="8"/></svg>'
+    src = (
+        '<svg viewBox="0 0 24 24" stroke-width="2"><rect width="10" height="8"/></svg>'
+    )
     out = gen.apply_viewbox_size(src, 48)
     assert 'stroke-width="2"' in out
     assert '<rect width="10" height="8"/>' in out
@@ -54,22 +56,35 @@ def test_viewbox_size_only_touches_root_tag(gen):
 
 
 def test_viewbox_size_handles_width_and_height_independently(gen):
-    out = gen.apply_viewbox_size("<svg width='10' viewBox='0 0 24 24'><path d='M0 0'/></svg>", 32)
+    out = gen.apply_viewbox_size(
+        "<svg width='10' viewBox='0 0 24 24'><path d='M0 0'/></svg>", 32
+    )
     root = out[: out.index(">") + 1]
-    assert "width=\"32\"" in root and "height=\"32\"" in root
+    assert 'width="32"' in root and 'height="32"' in root
     assert "width='10'" not in root
 
 
-@pytest.mark.parametrize("src, kept", [
-    ('<svg aria-label="height=\'2\'" viewBox="0 0 24 24"><path/></svg>',
-     {"aria-label": "height='2'"}),
-    ("<svg aria-label='width=\"2\" height=\"3\"' viewBox='0 0 24 24'><path/></svg>",
-     {"aria-label": 'width="2" height="3"'}),
-    ('<svg data-note="a > b width=\'1\'" height="5" viewBox="0 0 24 24"><path/></svg>',
-     {"data-note": "a > b width='1'"}),
-    ("<svg data-note='x>y height=\"2\"' width='7'><rect width='1' height='1'/></svg>",
-     {"data-note": 'x>y height="2"'}),
-])
+@pytest.mark.parametrize(
+    "src, kept",
+    [
+        (
+            '<svg aria-label="height=\'2\'" viewBox="0 0 24 24"><path/></svg>',
+            {"aria-label": "height='2'"},
+        ),
+        (
+            "<svg aria-label='width=\"2\" height=\"3\"' viewBox='0 0 24 24'><path/></svg>",
+            {"aria-label": 'width="2" height="3"'},
+        ),
+        (
+            '<svg data-note="a > b width=\'1\'" height="5" viewBox="0 0 24 24"><path/></svg>',
+            {"data-note": "a > b width='1'"},
+        ),
+        (
+            "<svg data-note='x>y height=\"2\"' width='7'><rect width='1' height='1'/></svg>",
+            {"data-note": 'x>y height="2"'},
+        ),
+    ],
+)
 def test_viewbox_size_ignores_attribute_text_inside_quoted_values(gen, src, kept):
     out = gen.apply_viewbox_size(src, 24)
     root = ET.fromstring(out)
@@ -83,7 +98,8 @@ def test_viewbox_size_ignores_attribute_text_inside_quoted_values(gen, src, kept
 def test_generate_icon_uses_large_token_budget(gen, tmp_path):
     client = gen.genai.Client.return_value
     client.models.generate_content.return_value = _response(
-        '<svg viewBox="0 0 24 24"><path d="M0 0"/></svg>')
+        '<svg viewBox="0 0 24 24"><path d="M0 0"/></svg>'
+    )
     out = tmp_path / "a.svg"
     assert gen.generate_icon("crane", output_path=str(out)) == str(out)
     cfg = client.models.generate_content.call_args.kwargs["config"]
@@ -93,7 +109,8 @@ def test_generate_icon_uses_large_token_budget(gen, tmp_path):
 def test_generate_icon_reports_max_tokens(gen, capsys):
     client = gen.genai.Client.return_value
     client.models.generate_content.return_value = _response(
-        '```svg\n<svg viewBox="0 0 24 24"><path d="M 15 14 H 19', "MAX_TOKENS")
+        '```svg\n<svg viewBox="0 0 24 24"><path d="M 15 14 H 19', "MAX_TOKENS"
+    )
     assert gen.generate_icon("crane") is None
     assert "MAX_TOKENS" in capsys.readouterr().out
     assert client.models.generate_content.call_count == 1
@@ -117,7 +134,8 @@ def test_generate_icon_handles_none_text(gen, capsys):
 def test_generate_batch_reports_max_tokens(gen, tmp_path, capsys):
     client = gen.genai.Client.return_value
     client.models.generate_content.return_value = _response(
-        '<svg viewBox="0 0 24 24"><path d="M 15 14 H 19', "MAX_TOKENS")
+        '<svg viewBox="0 0 24 24"><path d="M 15 14 H 19', "MAX_TOKENS"
+    )
     assert gen.generate_batch("crane", 2, str(tmp_path)) == []
     out = capsys.readouterr().out
     assert "MAX_TOKENS" in out and "Error generating icons" not in out
@@ -137,7 +155,9 @@ def test_generate_batch_warns_when_truncated_after_some_icons(gen, tmp_path, cap
     client = gen.genai.Client.return_value
     client.models.generate_content.return_value = _response(
         '<svg viewBox="0 0 24 24"><path d="M0 0"/></svg>\n'
-        '<svg viewBox="0 0 24 24"><path d="M 15 14 H 19', "MAX_TOKENS")
+        '<svg viewBox="0 0 24 24"><path d="M 15 14 H 19',
+        "MAX_TOKENS",
+    )
     assert len(gen.generate_batch("crane", 2, str(tmp_path))) == 1
     assert "MAX_TOKENS" in capsys.readouterr().out
 
@@ -151,7 +171,9 @@ def test_main_exits_1_when_icon_request_fails(gen, monkeypatch, tmp_path):
     client = gen.genai.Client.return_value
     client.models.generate_content.side_effect = RuntimeError("429 RESOURCE_EXHAUSTED")
     with pytest.raises(SystemExit) as raised:
-        _run_main(gen, monkeypatch, "--prompt", "crane", "--output", str(tmp_path / "a.svg"))
+        _run_main(
+            gen, monkeypatch, "--prompt", "crane", "--output", str(tmp_path / "a.svg")
+        )
     assert raised.value.code == 1
 
 
@@ -161,16 +183,27 @@ def test_main_exits_1_when_batch_generates_nothing(gen, monkeypatch, tmp_path):
     resp.candidates = []
     client.models.generate_content.return_value = resp
     with pytest.raises(SystemExit) as raised:
-        _run_main(gen, monkeypatch, "--prompt", "crane", "--batch", "2",
-                  "--output-dir", str(tmp_path))
+        _run_main(
+            gen,
+            monkeypatch,
+            "--prompt",
+            "crane",
+            "--batch",
+            "2",
+            "--output-dir",
+            str(tmp_path),
+        )
     assert raised.value.code == 1
 
 
 def test_main_exits_0_when_icon_is_saved(gen, monkeypatch, tmp_path):
     client = gen.genai.Client.return_value
     client.models.generate_content.return_value = _response(
-        '<svg viewBox="0 0 24 24"><path d="M0 0"/></svg>')
-    _run_main(gen, monkeypatch, "--prompt", "crane", "--output", str(tmp_path / "a.svg"))
+        '<svg viewBox="0 0 24 24"><path d="M0 0"/></svg>'
+    )
+    _run_main(
+        gen, monkeypatch, "--prompt", "crane", "--output", str(tmp_path / "a.svg")
+    )
     assert (tmp_path / "a.svg").exists()
 
 
