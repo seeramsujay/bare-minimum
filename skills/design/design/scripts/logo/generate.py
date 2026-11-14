@@ -436,7 +436,9 @@ def _generate_with_muapi(prompt, output_path, aspect_ratio, api_key, model):
             "canceled",
             "cancelled",
         }:
-            raise RuntimeError(f"MuAPI generation {normalized_status}: {_muapi_error(data)}")
+            raise RuntimeError(
+                f"MuAPI generation {normalized_status}: {_muapi_error(data)}"
+            )
         if poll_number == MUAPI_MAX_POLLS:
             break
 
@@ -458,7 +460,11 @@ def _path_for_image_type(output_path, mime_type):
     extension = IMAGE_EXTENSIONS.get(mime_type.split(";")[0].strip().lower())
     path = Path(output_path)
     suffix = path.suffix.lower()
-    if extension is None or suffix == extension or (suffix, extension) == (".jpeg", ".jpg"):
+    if (
+        extension is None
+        or suffix == extension
+        or (suffix, extension) == (".jpeg", ".jpg")
+    ):
         return output_path
     return str(path.with_suffix(extension))
 
@@ -549,7 +555,7 @@ def generate_logo(
     ratio = aspect_ratio if aspect_ratio in ASPECT_RATIOS else DEFAULT_ASPECT_RATIO
 
     if output_path is None:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # noqa: DTZ005
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         brand_slug = brand_name.lower().replace(" ", "_") if brand_name else "logo"
         output_path = f"{brand_slug}_{timestamp}.png"
 
@@ -587,7 +593,9 @@ def generate_logo(
                 muapi_model,
             )
         else:
-            output_path = _generate_with_gemini(full_prompt, output_path, ratio, use_pro)
+            output_path = _generate_with_gemini(
+                full_prompt, output_path, ratio, use_pro
+            )
 
         print(f"Logo saved to: {output_path}")
         return output_path
@@ -631,9 +639,11 @@ def generate_batch(
     model_label = (
         f"Atlas Cloud ({atlas_model})"
         if provider == "atlas"
-        else f"MuAPI ({muapi_model})"
-        if provider == "muapi"
-        else f"Nano Banana {'Pro' if use_pro else 'Flash'}"
+        else (
+            f"MuAPI ({muapi_model})"
+            if provider == "muapi"
+            else f"Nano Banana {'Pro' if use_pro else 'Flash'}"
+        )
     )
     ratio = aspect_ratio if aspect_ratio in ASPECT_RATIOS else DEFAULT_ASPECT_RATIO
 

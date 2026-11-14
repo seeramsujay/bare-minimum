@@ -54,9 +54,7 @@ class CatalogIntegrityTests(unittest.TestCase):
     def test_every_categorised_skill_has_catalog_entry(self) -> None:
         catalog_ids = {entry["id"] for entry in _load_catalog()}
         on_disk = {
-            skill_id
-            for skill_id, meta in scan_skills().items()
-            if meta["hasSkillMd"]
+            skill_id for skill_id, meta in scan_skills().items() if meta["hasSkillMd"]
         }
         missing = sorted(on_disk - catalog_ids)
         self.assertEqual(missing, [], f"skills without a catalog entry: {missing}")
@@ -90,15 +88,24 @@ class CatalogIntegrityTests(unittest.TestCase):
                 continue
             if entry.get("safeForDefault") and entry["id"] not in AUDITED_LOCAL_ONLY:
                 unsafe.append(entry["id"])
-        self.assertEqual(unsafe, [], "skills with code marked safeForDefault without an audit")
+        self.assertEqual(
+            unsafe, [], "skills with code marked safeForDefault without an audit"
+        )
 
     def test_skills_contain_no_forbidden_artifacts(self) -> None:
         # SECURITY.md: no hooks, settings, MCP config, or plugin manifests in the library.
-        forbidden_names = {"hooks.json", "settings.json", "settings.local.json", ".mcp.json"}
+        forbidden_names = {
+            "hooks.json",
+            "settings.json",
+            "settings.local.json",
+            ".mcp.json",
+        }
         forbidden_dirs = {".claude-plugin", "__pycache__"}
         found = []
         for path in SKILLS_DIR.rglob("*"):
-            if path.name in forbidden_names or (path.is_dir() and path.name in forbidden_dirs):
+            if path.name in forbidden_names or (
+                path.is_dir() and path.name in forbidden_dirs
+            ):
                 found.append(str(path.relative_to(REPO_ROOT)))
         self.assertEqual(sorted(found), [], "forbidden artifacts found under skills/")
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Icon Generation Script using Gemini 3.1 Pro Preview API
 Generates SVG icons via text generation (SVG is XML text format)
@@ -15,13 +14,12 @@ Usage:
 """
 
 import argparse
-import json
 import os
 import re
 import sys
 import time
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 
 def load_env():
@@ -29,17 +27,18 @@ def load_env():
     env_paths = [
         Path(__file__).parent.parent.parent / ".env",
         Path.home() / ".claude" / "skills" / ".env",
-        Path.home() / ".claude" / ".env"
+        Path.home() / ".claude" / ".env",
     ]
     for env_path in env_paths:
         if env_path.exists():
             with open(env_path) as f:
                 for line in f:
                     line = line.strip()
-                    if line and not line.startswith('#') and '=' in line:
-                        key, value = line.split('=', 1)
+                    if line and not line.startswith("#") and "=" in line:
+                        key, value = line.split("=", 1)
                         if key not in os.environ:
-                            os.environ[key] = value.strip('"\'')
+                            os.environ[key] = value.strip("\"'")
+
 
 load_env()
 
@@ -130,20 +129,20 @@ def extract_svgs(text):
     svgs = []
 
     # Try ```svg code blocks first
-    pattern = r'```svg\s*\n(.*?)```'
+    pattern = r"```svg\s*\n(.*?)```"
     matches = re.findall(pattern, text, re.DOTALL)
     if matches:
         svgs.extend(matches)
 
     # Fallback: try ```xml code blocks
     if not svgs:
-        pattern = r'```xml\s*\n(.*?)```'
+        pattern = r"```xml\s*\n(.*?)```"
         matches = re.findall(pattern, text, re.DOTALL)
         svgs.extend(matches)
 
     # Fallback: try bare <svg> tags
     if not svgs:
-        pattern = r'(<svg[^>]*>.*?</svg>)'
+        pattern = r"(<svg[^>]*>.*?</svg>)"
         matches = re.findall(pattern, text, re.DOTALL)
         svgs.extend(matches)
 
@@ -151,9 +150,9 @@ def extract_svgs(text):
     cleaned = []
     for svg in svgs:
         svg = svg.strip()
-        if not svg.startswith('<svg'):
+        if not svg.startswith("<svg"):
             # Try to find <svg> within the extracted text
-            match = re.search(r'(<svg[^>]*>.*?</svg>)', svg, re.DOTALL)
+            match = re.search(r"(<svg[^>]*>.*?</svg>)", svg, re.DOTALL)
             if match:
                 svg = match.group(1)
             else:
@@ -167,10 +166,10 @@ def apply_color(svg_code, color):
     """Replace currentColor with specific color if provided"""
     if color:
         # Replace currentColor with the specified color
-        svg_code = svg_code.replace('currentColor', color)
+        svg_code = svg_code.replace("currentColor", color)
         # If no currentColor was present, add fill/stroke color
         if color not in svg_code:
-            svg_code = svg_code.replace('<svg', f'<svg color="{color}"', 1)
+            svg_code = svg_code.replace("<svg", f'<svg color="{color}"', 1)
     return svg_code
 
 
@@ -181,15 +180,16 @@ _SVG_ROOT_TAG = re.compile(r"""<svg\b(?:[^>"']|"[^"]*"|'[^']*')*>""")
 # One token of an opening tag: name[=value], or a stray quoted string.
 # Quoted values are consumed whole, so text inside them is never a name.
 _TAG_ATTR = re.compile(
-    r"""([^\s=/>"']+)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>"']+))?|"[^"]*"|'[^']*'""")
+    r"""([^\s=/>"']+)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>"']+))?|"[^"]*"|'[^']*'"""
+)
 
 
 def _set_root_attr(tag, attr, value):
     """Set attr on a single <svg ...> opening tag, whatever quote style it uses."""
-    for m in _TAG_ATTR.finditer(tag, len('<svg')):
+    for m in _TAG_ATTR.finditer(tag, len("<svg")):
         if m.group(1) == attr:
-            return tag[:m.start()] + f'{attr}="{value}"' + tag[m.end():]
-    return tag.replace('<svg', f'<svg {attr}="{value}"', 1)
+            return tag[: m.start()] + f'{attr}="{value}"' + tag[m.end() :]
+    return tag.replace("<svg", f'<svg {attr}="{value}"', 1)
 
 
 def apply_viewbox_size(svg_code, size):
@@ -197,9 +197,9 @@ def apply_viewbox_size(svg_code, size):
     if size:
         match = _SVG_ROOT_TAG.search(svg_code)
         if match:
-            tag = _set_root_attr(match.group(0), 'width', size)
-            tag = _set_root_attr(tag, 'height', size)
-            svg_code = svg_code[:match.start()] + tag + svg_code[match.end():]
+            tag = _set_root_attr(match.group(0), "width", size)
+            tag = _set_root_attr(tag, "height", size)
+            svg_code = svg_code[: match.start()] + tag + svg_code[match.end() :]
     return svg_code
 
 
@@ -214,12 +214,12 @@ def _finish_reason(response):
 
 def _response_text(response):
     """Collect the text of a response; '' when it has none (blocked, empty)"""
-    text = getattr(response, 'text', None) or ""
+    text = getattr(response, "text", None) or ""
     if not text:
         candidates = response.candidates or []
         content = candidates[0].content if candidates else None
         for part in (content.parts or []) if content else []:
-            if getattr(part, 'text', None):
+            if getattr(part, "text", None):
                 text += part.text
     return text
 
@@ -227,8 +227,10 @@ def _response_text(response):
 def _report_no_svg(response, response_text, what="SVG"):
     """Say why no SVG came back: truncated, empty, or malformed output"""
     if "MAX_TOKENS" in _finish_reason(response):
-        print("Error: output hit the token limit (finish_reason MAX_TOKENS) "
-              "before the SVG was complete. Try a simpler prompt or style.")
+        print(
+            "Error: output hit the token limit (finish_reason MAX_TOKENS) "
+            "before the SVG was complete. Try a simpler prompt or style."
+        )
     elif not response_text.strip():
         print("Error: model returned an empty response.")
     else:
@@ -236,8 +238,16 @@ def _report_no_svg(response, response_text, what="SVG"):
         print(response_text[:500])
 
 
-def generate_icon(prompt, style=None, category=None, name=None,
-                  color=None, size=24, output_path=None, viewbox=24):
+def generate_icon(
+    prompt,
+    style=None,
+    category=None,
+    name=None,
+    color=None,
+    size=24,
+    output_path=None,
+    viewbox=24,
+):
     """Generate a single SVG icon using Gemini 3.1 Pro Preview"""
 
     if not GEMINI_API_KEY:
@@ -255,10 +265,14 @@ def generate_icon(prompt, style=None, category=None, name=None,
     # Build color instructions
     color_instructions = "- Use currentColor for all strokes and fills"
     if color:
-        color_instructions = f"- Use color: {color} for primary elements, currentColor for secondary"
+        color_instructions = (
+            f"- Use color: {color} for primary elements, currentColor for secondary"
+        )
 
     # Build size instructions
-    size_instructions = f"- Design for {size}px display size, optimize detail level accordingly"
+    size_instructions = (
+        f"- Design for {size}px display size, optimize detail level accordingly"
+    )
 
     # Build final prompt
     icon_prompt = prompt
@@ -272,7 +286,7 @@ def generate_icon(prompt, style=None, category=None, name=None,
         viewbox=viewbox,
         style_instructions=style_instructions,
         color_instructions=color_instructions,
-        size_instructions=size_instructions
+        size_instructions=size_instructions,
     )
 
     print(f"Generating icon with {MODEL}...")
@@ -288,7 +302,7 @@ def generate_icon(prompt, style=None, category=None, name=None,
             config=types.GenerateContentConfig(
                 temperature=0.7,
                 max_output_tokens=16384,
-            )
+            ),
         )
 
         # Extract SVG from response
@@ -312,7 +326,7 @@ def generate_icon(prompt, style=None, category=None, name=None,
         if output_path is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             slug = name or prompt.split()[0] if prompt else "icon"
-            slug = re.sub(r'[^a-zA-Z0-9_-]', '_', slug.lower())
+            slug = re.sub(r"[^a-zA-Z0-9_-]", "_", slug.lower())
             style_suffix = f"_{style}" if style else ""
             output_path = f"{slug}{style_suffix}_{timestamp}.svg"
 
@@ -328,8 +342,9 @@ def generate_icon(prompt, style=None, category=None, name=None,
         return None
 
 
-def generate_batch(prompt, count, output_dir, style=None, color=None,
-                   viewbox=24, name=None):
+def generate_batch(
+    prompt, count, output_dir, style=None, color=None, viewbox=24, name=None
+):
     """Generate multiple icon variations"""
 
     if not GEMINI_API_KEY:
@@ -353,11 +368,11 @@ def generate_batch(prompt, count, output_dir, style=None, color=None,
         count=count,
         viewbox=viewbox,
         style_instructions=style_instructions,
-        color_instructions=color_instructions
+        color_instructions=color_instructions,
     )
 
     print(f"\n{'='*60}")
-    print(f"  BATCH ICON GENERATION")
+    print("  BATCH ICON GENERATION")
     print(f"  Model: {MODEL}")
     print(f"  Prompt: {prompt}")
     print(f"  Variants: {count}")
@@ -371,7 +386,7 @@ def generate_batch(prompt, count, output_dir, style=None, color=None,
             config=types.GenerateContentConfig(
                 temperature=0.9,
                 max_output_tokens=16384,
-            )
+            ),
         )
 
         response_text = _response_text(response)
@@ -383,7 +398,7 @@ def generate_batch(prompt, count, output_dir, style=None, color=None,
             return []
 
         results = []
-        slug = name or re.sub(r'[^a-zA-Z0-9_-]', '_', prompt.split()[0].lower())
+        slug = name or re.sub(r"[^a-zA-Z0-9_-]", "_", prompt.split()[0].lower())
         style_suffix = f"_{style}" if style else ""
 
         for i, svg_code in enumerate(svgs[:count]):
@@ -398,8 +413,10 @@ def generate_batch(prompt, count, output_dir, style=None, color=None,
             print(f"  [{i+1}/{len(svgs[:count])}] Saved: {filename}")
 
         if len(results) < count and "MAX_TOKENS" in _finish_reason(response):
-            print("Warning: output hit the token limit (finish_reason MAX_TOKENS); "
-                  "the last icon was cut off. Try fewer variants or a simpler prompt.")
+            print(
+                "Warning: output hit the token limit (finish_reason MAX_TOKENS); "
+                "the last icon was cut off. Try fewer variants or a simpler prompt."
+            )
 
         print(f"\n{'='*60}")
         print(f"  BATCH COMPLETE: {len(results)}/{count} icons generated")
@@ -419,7 +436,7 @@ def generate_sizes(prompt, sizes, style=None, color=None, output_dir=None, name=
     os.makedirs(output_dir, exist_ok=True)
 
     results = []
-    slug = name or re.sub(r'[^a-zA-Z0-9_-]', '_', prompt.split()[0].lower())
+    slug = name or re.sub(r"[^a-zA-Z0-9_-]", "_", prompt.split()[0].lower())
     style_suffix = f"_{style}" if style else ""
 
     for size in sizes:
@@ -433,7 +450,7 @@ def generate_sizes(prompt, sizes, style=None, color=None, output_dir=None, name=
             color=color,
             size=size,
             output_path=filepath,
-            viewbox=size
+            viewbox=size,
         )
 
         if result:
@@ -450,26 +467,38 @@ def main():
     )
     parser.add_argument("--prompt", "-p", type=str, help="Icon description")
     parser.add_argument("--name", "-n", type=str, help="Icon name (for filename)")
-    parser.add_argument("--style", "-s", choices=list(ICON_STYLES.keys()),
-                        help="Icon style")
-    parser.add_argument("--category", "-c", choices=list(ICON_CATEGORIES.keys()),
-                        help="Icon category for context")
-    parser.add_argument("--color", type=str,
-                        help="Primary color (hex, e.g. #6366F1). Default: currentColor")
-    parser.add_argument("--size", type=int, default=24,
-                        help="Icon size in px (default: 24)")
-    parser.add_argument("--viewbox", type=int, default=24,
-                        help="SVG viewBox size (default: 24)")
+    parser.add_argument(
+        "--style", "-s", choices=list(ICON_STYLES.keys()), help="Icon style"
+    )
+    parser.add_argument(
+        "--category",
+        "-c",
+        choices=list(ICON_CATEGORIES.keys()),
+        help="Icon category for context",
+    )
+    parser.add_argument(
+        "--color",
+        type=str,
+        help="Primary color (hex, e.g. #6366F1). Default: currentColor",
+    )
+    parser.add_argument(
+        "--size", type=int, default=24, help="Icon size in px (default: 24)"
+    )
+    parser.add_argument(
+        "--viewbox", type=int, default=24, help="SVG viewBox size (default: 24)"
+    )
     parser.add_argument("--output", "-o", type=str, help="Output file path")
     parser.add_argument("--output-dir", type=str, help="Output directory for batch")
-    parser.add_argument("--batch", type=int,
-                        help="Number of icon variants to generate")
-    parser.add_argument("--sizes", type=str,
-                        help="Comma-separated sizes (e.g. '16,24,32,48')")
-    parser.add_argument("--list-styles", action="store_true",
-                        help="List available icon styles")
-    parser.add_argument("--list-categories", action="store_true",
-                        help="List available icon categories")
+    parser.add_argument("--batch", type=int, help="Number of icon variants to generate")
+    parser.add_argument(
+        "--sizes", type=str, help="Comma-separated sizes (e.g. '16,24,32,48')"
+    )
+    parser.add_argument(
+        "--list-styles", action="store_true", help="List available icon styles"
+    )
+    parser.add_argument(
+        "--list-categories", action="store_true", help="List available icon categories"
+    )
 
     args = parser.parse_args()
 
@@ -499,7 +528,7 @@ def main():
             style=args.style,
             color=args.color,
             output_dir=args.output_dir or "./icons",
-            name=args.name
+            name=args.name,
         )
     # Batch mode
     elif args.batch:
@@ -511,7 +540,7 @@ def main():
             style=args.style,
             color=args.color,
             viewbox=args.viewbox,
-            name=args.name
+            name=args.name,
         )
     # Single icon
     else:
@@ -523,7 +552,7 @@ def main():
             color=args.color,
             size=args.size,
             output_path=args.output,
-            viewbox=args.viewbox
+            viewbox=args.viewbox,
         )
 
     # Exit 1 when nothing was generated; a partly generated batch or size set exits 0

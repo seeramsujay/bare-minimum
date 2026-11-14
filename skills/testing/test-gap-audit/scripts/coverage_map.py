@@ -37,15 +37,56 @@ GIT_TIMEOUT = 30
 MAX_READ_BYTES = 400_000  # skip pathological files rather than stalling
 
 IGNORED_DIRS = {
-    ".git", ".hg", ".svn", "node_modules", "vendor", "venv", ".venv", "env",
-    "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".tox",
-    "dist", "build", "target", "out", ".next", ".nuxt", ".svelte-kit",
-    ".idea", ".vscode", ".gradle", "Pods", ".terraform", "coverage",
+    ".git",
+    ".hg",
+    ".svn",
+    "node_modules",
+    "vendor",
+    "venv",
+    ".venv",
+    "env",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".tox",
+    "dist",
+    "build",
+    "target",
+    "out",
+    ".next",
+    ".nuxt",
+    ".svelte-kit",
+    ".idea",
+    ".vscode",
+    ".gradle",
+    "Pods",
+    ".terraform",
+    "coverage",
 }
 
 SOURCE_EXTS = {
-    ".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".vue", ".svelte",
-    ".go", ".rs", ".rb", ".php", ".java", ".kt", ".swift", ".scala", ".cs", ".ex", ".exs", ".dart",
+    ".py",
+    ".js",
+    ".jsx",
+    ".ts",
+    ".tsx",
+    ".mjs",
+    ".cjs",
+    ".vue",
+    ".svelte",
+    ".go",
+    ".rs",
+    ".rb",
+    ".php",
+    ".java",
+    ".kt",
+    ".swift",
+    ".scala",
+    ".cs",
+    ".ex",
+    ".exs",
+    ".dart",
 }
 
 # Files that are configuration, generated, or entry-point glue rather than logic worth testing.
@@ -66,13 +107,31 @@ TEST_PATH = re.compile(
 
 # Framework marker -> label. Searched in manifests and config filenames.
 FRAMEWORKS = {
-    "vitest": "Vitest", "jest": "Jest", "mocha": "Mocha", "jasmine": "Jasmine",
-    "@playwright/test": "Playwright", "cypress": "Cypress", "ava": "AVA",
-    "@testing-library": "Testing Library", "karma": "Karma", "node:test": "node:test",
-    "pytest": "pytest", "unittest": "unittest", "nose": "nose", "tox": "tox",
-    "rspec": "RSpec", "minitest": "Minitest", "phpunit": "PHPUnit", "pest": "Pest",
-    "junit": "JUnit", "testng": "TestNG", "go test": "go test", "cargo test": "cargo test",
-    "xunit": "xUnit", "nunit": "NUnit", "exunit": "ExUnit",
+    "vitest": "Vitest",
+    "jest": "Jest",
+    "mocha": "Mocha",
+    "jasmine": "Jasmine",
+    "@playwright/test": "Playwright",
+    "cypress": "Cypress",
+    "ava": "AVA",
+    "@testing-library": "Testing Library",
+    "karma": "Karma",
+    "node:test": "node:test",
+    "pytest": "pytest",
+    "unittest": "unittest",
+    "nose": "nose",
+    "tox": "tox",
+    "rspec": "RSpec",
+    "minitest": "Minitest",
+    "phpunit": "PHPUnit",
+    "pest": "Pest",
+    "junit": "JUnit",
+    "testng": "TestNG",
+    "go test": "go test",
+    "cargo test": "cargo test",
+    "xunit": "xUnit",
+    "nunit": "NUnit",
+    "exunit": "ExUnit",
 }
 
 ASSERTION_TOKENS = re.compile(
@@ -91,20 +150,46 @@ TEST_CASE_TOKENS = re.compile(
 )
 
 RISK_KEYWORDS = (
-    "auth", "login", "session", "token", "password", "permission", "role", "admin",
-    "billing", "payment", "invoice", "subscription", "checkout", "charge", "refund",
-    "migration", "delete", "destroy", "export", "import", "webhook", "crypto", "wallet",
-    "security", "secret", "upload",
+    "auth",
+    "login",
+    "session",
+    "token",
+    "password",
+    "permission",
+    "role",
+    "admin",
+    "billing",
+    "payment",
+    "invoice",
+    "subscription",
+    "checkout",
+    "charge",
+    "refund",
+    "migration",
+    "delete",
+    "destroy",
+    "export",
+    "import",
+    "webhook",
+    "crypto",
+    "wallet",
+    "security",
+    "secret",
+    "upload",
 )
 
 # Import forms across the languages we handle. Group 1 is always the module reference.
 IMPORT_RES = [
-    re.compile(r"""(?:from|import)\s+['"]([^'"]+)['"]"""),          # JS/TS
-    re.compile(r"""require\(\s*['"]([^'"]+)['"]\s*\)"""),            # CJS
-    re.compile(r"""^\s*from\s+([A-Za-z0-9_.]+)\s+import""", re.M),   # Python from-import
-    re.compile(r"""^\s*import\s+([A-Za-z0-9_.]+)""", re.M),          # Python/Java/Go import
-    re.compile(r"""use\s+([A-Za-z0-9_:]+)"""),                       # Rust
-    re.compile(r"""require(?:_relative)?\s+['"]([^'"]+)['"]"""),     # Ruby
+    re.compile(r"""(?:from|import)\s+['"]([^'"]+)['"]"""),  # JS/TS
+    re.compile(r"""require\(\s*['"]([^'"]+)['"]\s*\)"""),  # CJS
+    re.compile(
+        r"""^\s*from\s+([A-Za-z0-9_.]+)\s+import""", re.MULTILINE
+    ),  # Python from-import
+    re.compile(
+        r"""^\s*import\s+([A-Za-z0-9_.]+)""", re.MULTILINE
+    ),  # Python/Java/Go import
+    re.compile(r"""use\s+([A-Za-z0-9_:]+)"""),  # Rust
+    re.compile(r"""require(?:_relative)?\s+['"]([^'"]+)['"]"""),  # Ruby
 ]
 
 warnings: list[str] = []
@@ -116,9 +201,14 @@ def run_git(args: list[str], repo: Path) -> str | None:
         return None
     try:
         r = subprocess.run(
-            [git, *args], cwd=str(repo), text=True, timeout=GIT_TIMEOUT,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            encoding="utf-8", errors="replace",
+            [git, *args],
+            cwd=str(repo),
+            text=True,
+            timeout=GIT_TIMEOUT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding="utf-8",
+            errors="replace",
         )
     except (OSError, subprocess.SubprocessError) as exc:
         warnings.append(f"git {' '.join(args)} failed: {exc}")
@@ -132,10 +222,14 @@ def list_files(repo: Path) -> list[str]:
         files = [ln.strip() for ln in out.splitlines() if ln.strip()]
         if files:
             return sorted(files)
-    warnings.append("git unavailable or empty index; using a filesystem walk (ignore rules approximated)")
+    warnings.append(
+        "git unavailable or empty index; using a filesystem walk (ignore rules approximated)"
+    )
     files = []
     for root, dirnames, filenames in os.walk(repo):
-        dirnames[:] = [d for d in dirnames if d not in IGNORED_DIRS and not d.startswith(".")]
+        dirnames[:] = [
+            d for d in dirnames if d not in IGNORED_DIRS and not d.startswith(".")
+        ]
         for fn in filenames:
             files.append(Path(root, fn).relative_to(repo).as_posix())
     return sorted(files)
@@ -153,8 +247,17 @@ def read(path: Path) -> str:
 def detect_frameworks(repo: Path, files: list[str]) -> list[str]:
     found: set[str] = set()
     haystacks: list[str] = []
-    for name in ("package.json", "pyproject.toml", "requirements.txt", "Gemfile",
-                 "composer.json", "pom.xml", "build.gradle", "mix.exs", "Cargo.toml"):
+    for name in (
+        "package.json",
+        "pyproject.toml",
+        "requirements.txt",
+        "Gemfile",
+        "composer.json",
+        "pom.xml",
+        "build.gradle",
+        "mix.exs",
+        "Cargo.toml",
+    ):
         for rel in [f for f in files if Path(f).name == name][:5]:
             haystacks.append(read(repo / rel).lower())
     config_names = " ".join(Path(f).name.lower() for f in files)
@@ -174,8 +277,10 @@ def detect_frameworks(repo: Path, files: list[str]) -> list[str]:
     # Language-implied runners that need no manifest entry.
     if any(f.endswith("_test.go") for f in files):
         found.add("go test")
-    if any(f.endswith(".rs") for f in files) and any("#[test]" in read(repo / f) for f in
-                                                     [x for x in files if x.endswith(".rs")][:20]):
+    if any(f.endswith(".rs") for f in files) and any(
+        "#[test]" in read(repo / f)
+        for f in [x for x in files if x.endswith(".rs")][:20]
+    ):
         found.add("cargo test")
     return sorted(found)
 
@@ -217,11 +322,16 @@ def module_tokens(rel: str) -> set[str]:
 
 
 def build(repo: Path, files: list[str]) -> dict:
-    test_files = [f for f in files if TEST_PATH.search(f) and Path(f).suffix in SOURCE_EXTS]
+    test_files = [
+        f for f in files if TEST_PATH.search(f) and Path(f).suffix in SOURCE_EXTS
+    ]
     test_set = set(test_files)
     source_files = [
-        f for f in files
-        if Path(f).suffix in SOURCE_EXTS and f not in test_set and not NON_LOGIC.search(f)
+        f
+        for f in files
+        if Path(f).suffix in SOURCE_EXTS
+        and f not in test_set
+        and not NON_LOGIC.search(f)
     ]
 
     # Index what the tests import, plus every bare identifier they mention.
@@ -246,11 +356,20 @@ def build(repo: Path, files: list[str]) -> dict:
         lines = text.count("\n") + 1
         # A test file with cases but almost no assertions is usually asserting nothing useful.
         if cases and assertions <= max(1, cases // 4):
-            weak.append({"path": rel, "test_cases": cases, "assertions": assertions, "lines": lines})
+            weak.append(
+                {
+                    "path": rel,
+                    "test_cases": cases,
+                    "assertions": assertions,
+                    "lines": lines,
+                }
+            )
 
     # Test files whose filename itself marks them as a test, as opposed to files that
     # merely live under tests/ or e2e/ (fixtures, helpers, page objects, factories).
-    named_test_re = re.compile(r"([._-](test|spec)s?$)|(^test_)|(^test$)", re.IGNORECASE)
+    named_test_re = re.compile(
+        r"([._-](test|spec)s?$)|(^test_)|(^test$)", re.IGNORECASE
+    )
     named_tests = [t for t in test_files if named_test_re.search(Path(t).stem)]
 
     matched: dict[str, list[str]] = {}
@@ -268,9 +387,19 @@ def build(repo: Path, files: list[str]) -> dict:
         #    in the repo. A false match here hides a real gap, so keep this rule strict.
         for t in named_tests:
             tl = Path(t).stem.lower()
-            if tl in {f"{stem}test", f"test{stem}", f"{stem}spec", f"{stem}_test",
-                      f"test_{stem}", f"{stem}.test", f"{stem}.spec"} or \
-               re.sub(r"[._-]?(test|spec)s?$", "", tl) == stem:
+            if (
+                tl
+                in {
+                    f"{stem}test",
+                    f"test{stem}",
+                    f"{stem}spec",
+                    f"{stem}_test",
+                    f"test_{stem}",
+                    f"{stem}.test",
+                    f"{stem}.spec",
+                }
+                or re.sub(r"[._-]?(test|spec)s?$", "", tl) == stem
+            ):
                 how.append(f"name match: {t}")
                 break
         # 2. mirrored directory layout, e.g. src/a/b.ts -> tests/a/b.test.ts
@@ -290,12 +419,14 @@ def build(repo: Path, files: list[str]) -> dict:
         else:
             lines = read(repo / rel).count("\n") + 1
             hits = [k for k in RISK_KEYWORDS if k in rel.lower()]
-            untested.append({
-                "path": rel,
-                "lines": lines,
-                "dir": str(Path(rel).parent).replace("\\", "/"),
-                "risk_keywords": hits,
-            })
+            untested.append(
+                {
+                    "path": rel,
+                    "lines": lines,
+                    "dir": str(Path(rel).parent).replace("\\", "/"),
+                    "risk_keywords": hits,
+                }
+            )
 
     untested.sort(key=lambda x: (not x["risk_keywords"], -x["lines"]))
     weak.sort(key=lambda x: -x["test_cases"])
@@ -314,7 +445,9 @@ def build(repo: Path, files: list[str]) -> dict:
             "test_files": len(test_files),
             "matched": len(matched),
             "untested": len(untested),
-            "coverage_ratio": round(len(matched) / len(source_files), 3) if source_files else None,
+            "coverage_ratio": (
+                round(len(matched) / len(source_files), 3) if source_files else None
+            ),
         },
         "untested": untested,
         "untested_by_directory": sorted(
@@ -322,7 +455,9 @@ def build(repo: Path, files: list[str]) -> dict:
             key=lambda x: -x["untested"],
         ),
         "weak_tests": weak,
-        "matched_sample": [{"path": p, "why": w} for p, w in list(matched.items())[:15]],
+        "matched_sample": [
+            {"path": p, "why": w} for p, w in list(matched.items())[:15]
+        ],
         "warnings": warnings,
     }
 
@@ -338,8 +473,10 @@ def render(d: dict, top: int) -> str:
     t = d["totals"]
     L = ["# Test Coverage Map", "", f"Repo: {d['repo']}"]
     ratio = f"{t['coverage_ratio']:.0%}" if t["coverage_ratio"] is not None else "n/a"
-    L.append(f"Source files: {t['source_files']}   Test files: {t['test_files']}   "
-             f"Matched: {t['matched']} ({ratio})   Unmatched: {t['untested']}")
+    L.append(
+        f"Source files: {t['source_files']}   Test files: {t['test_files']}   "
+        f"Matched: {t['matched']} ({ratio})   Unmatched: {t['untested']}"
+    )
     L.append("")
     L.append(f"Frameworks detected: {', '.join(d['frameworks']) or 'none detected'}")
     L.append(f"Naming conventions: {', '.join(d['conventions']) or 'none inferred'}")
@@ -348,7 +485,11 @@ def render(d: dict, top: int) -> str:
     L.append("## Unmatched source files (risk-flagged first, then largest)")
     if d["untested"]:
         for u in truncate(d["untested"], top, "unmatched files", L):
-            flag = f"  [risk: {', '.join(u['risk_keywords'])}]" if u["risk_keywords"] else ""
+            flag = (
+                f"  [risk: {', '.join(u['risk_keywords'])}]"
+                if u["risk_keywords"]
+                else ""
+            )
             L.append(f"- {u['path']}: {u['lines']} lines{flag}")
     else:
         L.append("- none; every source file matched at least one test signal")
@@ -362,7 +503,9 @@ def render(d: dict, top: int) -> str:
     L.append("## Test files with test cases but few assertions")
     if d["weak_tests"]:
         for w in truncate(d["weak_tests"], top, "test files", L):
-            L.append(f"- {w['path']}: {w['test_cases']} cases, {w['assertions']} assertions")
+            L.append(
+                f"- {w['path']}: {w['test_cases']} cases, {w['assertions']} assertions"
+            )
     else:
         L.append("- none flagged")
     L.append("")
@@ -372,16 +515,24 @@ def render(d: dict, top: int) -> str:
         L.extend(f"- {w}" for w in d["warnings"])
         L.append("")
 
-    L.append("HEURISTIC MATCHER. An unmatched file is a lead, not a finding: coverage through")
-    L.append("fixtures, end-to-end tests, or indirection is invisible here. Confirm by grepping for")
+    L.append(
+        "HEURISTIC MATCHER. An unmatched file is a lead, not a finding: coverage through"
+    )
+    L.append(
+        "fixtures, end-to-end tests, or indirection is invisible here. Confirm by grepping for"
+    )
     L.append("the module name before reporting anything as P0 or P1.")
     return "\n".join(L)
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Map source files against tests. Read-only.")
+    ap = argparse.ArgumentParser(
+        description="Map source files against tests. Read-only."
+    )
     ap.add_argument("--repo", default=".", help="Path inside the repository.")
-    ap.add_argument("--format", choices=["text", "json"], default="text", help="Output format.")
+    ap.add_argument(
+        "--format", choices=["text", "json"], default="text", help="Output format."
+    )
     ap.add_argument("--top", type=int, default=25, help="Rows per section. Default 25.")
     ap.add_argument(
         "--no-git-root",
@@ -408,7 +559,9 @@ def main() -> int:
         return 2
 
     data = build(repo, files)
-    print(json.dumps(data, indent=2) if args.format == "json" else render(data, args.top))
+    print(
+        json.dumps(data, indent=2) if args.format == "json" else render(data, args.top)
+    )
     return 0
 
 

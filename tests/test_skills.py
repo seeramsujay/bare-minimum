@@ -10,21 +10,17 @@ Verifies:
 
 from __future__ import annotations
 
-import json
-import os
-import re
 import shutil
 import tempfile
 import unittest
 from pathlib import Path
 
 from scripts.essentials_cli import (
-    REPO_ROOT,
-    SKILLS_DIR,
     PRESETS,
-    scan_skills,
-    parse_frontmatter,
+    SKILLS_DIR,
     main,
+    parse_frontmatter,
+    scan_skills,
 )
 
 
@@ -45,7 +41,8 @@ class SkillsLibraryTests(unittest.TestCase):
             "threejs",
         }
         actual_categories = {
-            d.name for d in SKILLS_DIR.iterdir()
+            d.name
+            for d in SKILLS_DIR.iterdir()
             if d.is_dir() and not d.name.startswith((".", "_"))
         }
         self.assertTrue(expected_categories.issubset(actual_categories))
@@ -53,14 +50,15 @@ class SkillsLibraryTests(unittest.TestCase):
     def test_every_skill_has_valid_skill_md_and_frontmatter(self) -> None:
         """Verify every skill folder contains a valid SKILL.md with name and description."""
         skills = scan_skills()
-        self.assertGreaterEqual(len(skills), 50, "Expected at least 50 skills in skills/")
+        self.assertGreaterEqual(
+            len(skills), 50, "Expected at least 50 skills in skills/"
+        )
 
         for sid, sdata in skills.items():
             skill_dir = Path(sdata["fullPath"])
             skill_md = skill_dir / "SKILL.md"
             self.assertTrue(
-                skill_md.is_file(),
-                f"Skill '{sid}' at {skill_dir} is missing SKILL.md"
+                skill_md.is_file(), f"Skill '{sid}' at {skill_dir} is missing SKILL.md"
             )
 
             text = skill_md.read_text(encoding="utf-8")
@@ -68,20 +66,20 @@ class SkillsLibraryTests(unittest.TestCase):
 
             self.assertTrue(
                 bool(fields),
-                f"Skill '{sid}' at {skill_md} has missing or malformed YAML frontmatter"
+                f"Skill '{sid}' at {skill_md} has missing or malformed YAML frontmatter",
             )
             self.assertEqual(
                 fields.get("name"),
                 sid,
-                f"Skill '{sid}' frontmatter name '{fields.get('name')}' must match directory name"
+                f"Skill '{sid}' frontmatter name '{fields.get('name')}' must match directory name",
             )
             self.assertTrue(
                 bool(fields.get("description")),
-                f"Skill '{sid}' frontmatter description must be non-empty"
+                f"Skill '{sid}' frontmatter description must be non-empty",
             )
             self.assertTrue(
                 len(body.strip()) > 50,
-                f"Skill '{sid}' instructions body must not be empty"
+                f"Skill '{sid}' instructions body must not be empty",
             )
 
     def test_no_duplicate_skill_names_across_categories(self) -> None:
@@ -124,14 +122,12 @@ class SkillsLibraryTests(unittest.TestCase):
             for ref in pdata["skills"]:
                 cat, sid = ref.split("/", 1)
                 self.assertIn(
-                    sid,
-                    skills,
-                    f"Preset '{pname}' references unknown skill '{ref}'"
+                    sid, skills, f"Preset '{pname}' references unknown skill '{ref}'"
                 )
                 self.assertEqual(
                     skills[sid]["category"],
                     cat,
-                    f"Skill '{sid}' category mismatch in preset '{pname}'"
+                    f"Skill '{sid}' category mismatch in preset '{pname}'",
                 )
 
     def test_cli_list_command(self) -> None:
@@ -160,4 +156,3 @@ class SkillsLibraryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
