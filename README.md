@@ -1,6 +1,21 @@
-# Essentials
+<p align="center">
+  <img src="assets/logo.svg" alt="Essentials Logo" width="130" height="130" />
+</p>
 
-**The Universal, All-in-One AI Developer Toolkit & Portable Skills Library.**
+<h1 align="center">Essentials</h1>
+
+<p align="center">
+  <strong>The Universal, All-in-One AI Developer Toolkit & Portable Skills Library</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/seeramsujay/bare-minimum/actions"><img src="https://img.shields.io/badge/CI-Passing-brightgreen?style=flat-square" alt="CI" /></a>
+  <img src="https://img.shields.io/badge/Standard-Skills%20Are%20Folders-white?style=flat-square" alt="Standard" />
+  <img src="https://img.shields.io/badge/Ecosystem-Claude%20%7C%20OpenCode%20%7C%20Antigravity-blue?style=flat-square" alt="Ecosystem" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
+</p>
+
+---
 
 Essentials is a curated collection of **ready-to-use AI agent skills**, developer environment configurations, and production-ready project templates.
 
